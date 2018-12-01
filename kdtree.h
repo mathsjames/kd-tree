@@ -77,6 +77,7 @@ namespace kdt
 	    root_ = new Node();
 	    root_->idx = 0;
 	    root_->axis = 0;
+	    root_->count = 1;
 	  }
       }
 
@@ -124,11 +125,12 @@ namespace kdt
        */
       struct Node
       {
-	int idx;       //!< index to the original point
-	Node* next[2]; //!< pointers to the child nodes
-	int axis;      //!< dimension's axis
+	int idx;         //!< index to the original point
+	Node* next[2];   //!< pointers to the child nodes
+	int axis;        //!< dimension's axis
+	int count;       //!< number of descendants including self
 
-      Node() : idx(-1), axis(-1) { next[0] = next[1] = nullptr; }
+      Node() : idx(-1), axis(-1), count(0) { next[0] = next[1] = nullptr; }
       };
 
       /** @brief k-d tree exception.
@@ -186,6 +188,7 @@ namespace kdt
 	Node* node = new Node();
 	node->idx = indices[mid];
 	node->axis = axis;
+	node->count = npoints;
 
 	node->next[0] = buildRecursive(indices, mid, depth + 1);
 	node->next[1] = buildRecursive(indices + mid + 1, npoints - mid - 1, depth + 1);
@@ -227,6 +230,9 @@ namespace kdt
 
 	    if (points_[node->idx][axis] > points_[node1->idx][axis])
 	      throw Exception();
+
+	    if (node->count!=1+node0->count+node1->count)
+	      throw Exception();
 	  }
 
 	if (node0)
@@ -242,6 +248,7 @@ namespace kdt
       {
 	const int axis = node->axis;
 	const int dir = newPoint[axis] < points_[node->idx][axis] ? 0 : 1;
+	node->count++;
 
 	if (node->next[dir])
 	  {
@@ -252,6 +259,7 @@ namespace kdt
 	    Node* newNode = new Node();
 	    newNode->idx = points_.size()-1;
 	    newNode->axis = (depth+1) % PointT::DIM;
+	    newNode->count = 1;
 	    node->next[dir] = newNode;
 	  }
       }

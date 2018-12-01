@@ -54,7 +54,7 @@ int main() {
       // place to return values to force evaluation
       std::vector<int> responses1(nquerys);
       std::vector<int> responses2(nquerys);
-      
+
       // time some basic operations
       steady_clock::time_point t1 = steady_clock::now();
       
@@ -108,6 +108,14 @@ int main() {
 
       steady_clock::time_point t7 = steady_clock::now();
 
+      if (kdtree.validate())
+	{
+	  std::cout << "Insertion built tree was valid" << std::endl;
+	}
+      else
+	{
+	  std::cout << "Error: Insertion built tree was invalid" << std::endl;
+	}
       kdtree.clear();
       
       // Force compiler to compute the above
