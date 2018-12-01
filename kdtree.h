@@ -76,7 +76,7 @@ namespace kdt
 	  {
 	    root_ = new Node();
 	    root_->idx = 0;
-	    root_->axis = 1;
+	    root_->axis = 0;
 	  }
       }
 
