@@ -52,7 +52,8 @@ int main() {
       const MyPoint query(0.5 * width, 0.5 * height);
 
       // place to return values to force evaluation
-      std::vector<int> responses(nquerys);
+      std::vector<int> responses1(nquerys);
+      std::vector<int> responses2(nquerys);
       
       // time some basic operations
       steady_clock::time_point t1 = steady_clock::now();
@@ -63,7 +64,7 @@ int main() {
       
       for (int i = 0; i < nquerys; i++)
       	{
-	  responses[i]=kdtree.nnSearch(querys[i]);
+	  responses1[i]=kdtree.nnSearch(querys[i]);
 	}
       
       steady_clock::time_point t3 = steady_clock::now();
@@ -91,12 +92,31 @@ int main() {
 	}
 
       steady_clock::time_point t5 = steady_clock::now();
+
+      // build by making insertions
+      for (int i = 0; i < npoints; i++)
+	{
+	  kdtree.insert(points[i]);
+	}
+
+      steady_clock::time_point t6 = steady_clock::now();
+
+      for (int i = 0; i < nquerys; i++)
+	{
+	  responses2[i]=kdtree.nnSearch(querys[i]);
+	}
+
+      steady_clock::time_point t7 = steady_clock::now();
+
+      kdtree.clear();
       
       // Force compiler to compute the above
       int force=0;
       for (int i = 0; i < nquerys; i++)
 	{
-	  force+=responses[i];
+	  force+=responses1[i];
+	  force+=responses2[i];
+	  force+=nearestPoint;
 	}
       if (force==17)
 	{
@@ -121,11 +141,25 @@ int main() {
       
       time_span = duration_cast<duration<double>>(t5 - t4);
       std::cout << "linear nnSearch:" << time_span.count() << " seconds." << std::endl;
+
+      std::cout << "Built by insertion case:" << std::endl;
+
+      time_span = duration_cast<duration<double>>(t6 - t5);
+      std::cout << "Building:" << time_span.count() << " seconds." << std::endl;
+
+      time_span = duration_cast<duration<double>>(t7 - t6);
+      avgtime=time_span.count()/nquerys;
+      std::cout << "nnSearch(average of " << nquerys << " runs):" << avgtime << " seconds." << std::endl;
       
       // Test nnSearch against the linear search result
-      if (nearestPoint!=responses[0])
+      if (nearestPoint!=responses1[0])
 	{
-	  std::cout << "There is a mismatch between the nearest point according to linear search and according to the tree, this should have very low probability if the code is working." << std::endl;
+	  std::cout << "The built in one tree returned an incorrect nearest neighbour." << std::endl;
+	}
+
+      if (nearestPoint!=responses2[0])
+	{
+	  std::cout << "The built by insertion tree returned an incorrect nearest neighbour." << std::endl;
 	}
 
       std::cout << std::endl;
